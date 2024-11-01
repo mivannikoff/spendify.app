@@ -1,10 +1,18 @@
 import * as dayjs from 'dayjs';
+import * as customParseFormat from 'dayjs/plugin/customParseFormat';
+import * as localeData from 'dayjs/plugin/localeData';
+import 'dayjs/locale/ru';
+
+dayjs.extend(customParseFormat);
+dayjs.extend(localeData);
+
+dayjs.locale('ru');
 
 export function groupExpensesByDate(expenses) {
   const groupedData = {};
 
   expenses.forEach((expense) => {
-    const date = dayjs(expense.date.split('T')[0]).format('DD-MM-YYYY'); // Извлекаем дату в формате YYYY-MM-DD
+    const date = dayjs(expense.date.split('T')[0]).format('DD MMMM YYYY');
     const category = expense.expand.category_id.name;
     const description = expense.description;
     const amount = expense.amount;
