@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PocketBase = require('pocketbase/cjs');
 
+import { groupExpensesByDate } from '../../utils';
+
 const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
 
 @Injectable()
@@ -12,7 +14,7 @@ export class ExpensesService {
       sort: '-created',
     });
 
-    return result;
+    return groupExpensesByDate(result);
   }
 
   async create(params: any): Promise<any> {
