@@ -24,14 +24,17 @@ export function groupExpensesByDate(expenses) {
     };
 
     if (!groupedData[date]) {
-      groupedData[date] = [];
+      groupedData[date] = { data: [], totalAmount: 0 };
     }
-    groupedData[date].push(expenseObject);
+    groupedData[date].data.push(expenseObject);
+    groupedData[date].totalAmount += amount;
   });
 
-  return Object.entries(groupedData).map(([title, data]) => ({
+  // @ts-ignore
+  return Object.entries(groupedData).map(([title, { data, totalAmount }]) => ({
     title,
     data,
+    totalAmount: parseFloat(totalAmount.toFixed(2)),
   }));
 }
 
