@@ -1,21 +1,36 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import { ExpensesService } from './expenses.service';
-import { CreateExpensesDto } from './dto';
+import {
+  GetAllExpensesDto,
+  PaginatedExpensesDto,
+  CreateExpensesDto,
+  CreatedExpensesDto,
+} from './dto';
 
 @ApiTags('Expenses')
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
+  @ApiResponse({
+    description: 'Получение списка расходов по датам',
+    type: PaginatedExpensesDto,
+  })
   @Get()
-  findAll(): Promise<any> {
-    return this.expensesService.findAll();
+  findAll(@Query() params: GetAllExpensesDto): Promise<PaginatedExpensesDto> {
+    return this.expensesService.findAll(params);
   }
 
+  @ApiResponse({
+    description: 'Добавление траты',
+    type: CreatedExpensesDto,
+  })
   @Post()
-  create(@Body() createExpensesDto: CreateExpensesDto): Promise<any> {
+  create(
+    @Body() createExpensesDto: CreateExpensesDto,
+  ): Promise<CreatedExpensesDto> {
     return this.expensesService.create(createExpensesDto);
   }
 }
