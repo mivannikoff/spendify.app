@@ -1,4 +1,4 @@
-import { Injectable, HttpException } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PocketBase = require('pocketbase/cjs');
 import * as dayjs from 'dayjs';
@@ -6,11 +6,11 @@ import * as dayjs from 'dayjs';
 import { groupExpensesByDate } from '../../utils';
 
 import {
+  CreatedExpensesDto,
+  CreateExpensesDto,
+  ExpenseCategoryDto,
   GetAllExpensesDto,
   PaginatedExpensesDto,
-  CreateExpensesDto,
-  CreatedExpensesDto,
-  ExpenseCategoryDto,
 } from './dto';
 
 const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
@@ -91,11 +91,23 @@ export class ExpensesService {
       }
     });
 
-    categoryExpenses.forEach((category) => {
-      category.totalAmount = parseFloat(category.totalAmount.toFixed(2));
+    const totalExpenses = categoryExpenses.reduce(
+      (total, category) => total + category.totalAmount,
+      0,
+    );
+
+    const categoryExpensesWithPercentage = categoryExpenses.map((category) => {
+      const percentage =
+        totalExpenses > 0 ? (category.totalAmount / totalExpenses) * 100 : 0;
+
+      return {
+        ...category,
+        totalAmount: parseFloat(category.totalAmount.toFixed(2)),
+        percentage: parseFloat(percentage.toFixed(2)),
+      };
     });
 
-    return categoryExpenses;
+    return categoryExpensesWithPercentage;
   }
 
   async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {
@@ -130,7 +142,7 @@ export class ExpensesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await pb
+    return await pb
       .collection('expenses')
       .delete(id)
       .catch((error) => {
@@ -138,7 +150,5 @@ export class ExpensesService {
 
         throw new HttpException(error.response.message, error.response.code);
       });
-
-    return result;
   }
 }

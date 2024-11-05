@@ -9,4 +9,7 @@ export class ExpenseCategoryDto {
 
   @ApiProperty()
   totalAmount: number;
+
+  @ApiProperty()
+  percentage: number;
 }

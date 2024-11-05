@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 
-import { CategoryDto } from '../../categories/dto/category.dto';
+import { CategoryDto } from '@/resources/categories/dto';
 
 export class ExpenseDto {
   @ApiProperty()

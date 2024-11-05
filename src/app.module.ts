@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 
+import { ReportsModule } from './resources/reports/reports.module';
 import { CategoriesModule } from './resources/categories/categories.module';
 import { ExpensesModule } from './resources/expenses/expenses.module';
 
 @Module({
-  imports: [CategoriesModule, ExpensesModule],
+  imports: [ReportsModule, CategoriesModule, ExpensesModule],
   controllers: [],
   providers: [],
 })
