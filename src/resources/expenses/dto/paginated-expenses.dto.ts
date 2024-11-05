@@ -11,7 +11,11 @@ export class AllDataDto {
   totalAmount: number;
 
   @ApiProperty({ isArray: true, type: () => ExpenseDto })
-  data: ExpenseDto[];
+  data: Array<
+    {
+      category: string;
+    } & Pick<ExpenseDto, 'id' | 'description' | 'amount'>
+  >;
 }
 
 export class PaginatedExpensesDto extends PaginationDto {

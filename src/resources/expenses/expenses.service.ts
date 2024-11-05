@@ -26,40 +26,25 @@ export class ExpensesService {
     });
 
     const dates = result?.items?.map((item) => new Date(item.date));
-    const startDate = new Date(Math.min(...dates)).toISOString().slice(0, 10);
-    const endDate = new Date(Math.max(...dates)).toISOString().slice(0, 10);
-
-    const startDateExtended = dayjs(startDate)
+    const startDateExtended = dayjs(new Date(Math.min(...dates)))
       .subtract(1, 'day')
-      .toISOString()
-      .slice(0, 10);
-    const endDateExtended = dayjs(endDate)
+      .format('YYYY-MM-DD');
+    const endDateExtended = dayjs(new Date(Math.max(...dates)))
       .add(1, 'day')
-      .toISOString()
-      .slice(0, 10);
+      .format('YYYY-MM-DD');
 
-    const result1 = await pb.collection('expenses').getFullList({
+    const resultByDate = await pb.collection('expenses').getFullList({
       expand: 'category_id',
       filter: `date >= "${startDateExtended}T00:00:00Z" && date <= "${endDateExtended}T23:59:59Z"`,
       sort: '-date',
     });
-
-    // @ts-ignore
-    const totalAmountsByDate = result1.reduce<Record<string, number>>(
-      (acc, expense) => {
-        const date = dayjs(expense.date).format('DD MMMM YYYY');
-        acc[date] = (acc[date] || 0) + expense.amount;
-        return acc;
-      },
-      {},
-    );
 
     return {
       page: result.page,
       perPage: result.perPage,
       totalItems: result.totalItems,
       totalPages: result.totalPages,
-      items: groupExpensesByDate(result.items, totalAmountsByDate),
+      items: groupExpensesByDate(result.items, resultByDate),
     };
   }
 
@@ -85,5 +70,11 @@ export class ExpensesService {
       created: result.created,
       updated: result.updated,
     };
+  }
+
+  async delete(id: string): Promise<boolean> {
+    const result = await pb.collection('expenses').delete(id);
+
+    return result;
   }
 }

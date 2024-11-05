@@ -1,4 +1,12 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Delete,
+  Query,
+  Param,
+} from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 
 import { ExpensesService } from './expenses.service';
@@ -7,6 +15,7 @@ import {
   PaginatedExpensesDto,
   CreateExpensesDto,
   CreatedExpensesDto,
+  ExpenseDto,
 } from './dto';
 
 @ApiTags('Expenses')
@@ -24,7 +33,7 @@ export class ExpensesController {
   }
 
   @ApiResponse({
-    description: 'Добавление трат',
+    description: 'Добавление расходов',
     type: CreatedExpensesDto,
   })
   @Post()
@@ -32,5 +41,14 @@ export class ExpensesController {
     @Body() createExpensesDto: CreateExpensesDto,
   ): Promise<CreatedExpensesDto> {
     return this.expensesService.create(createExpensesDto);
+  }
+
+  @ApiResponse({
+    description: 'Удаление расходов',
+    type: ExpenseDto,
+  })
+  @Delete(':id')
+  delete(@Param('id') id: string): Promise<boolean> {
+    return this.expensesService.delete(id);
   }
 }

@@ -5,8 +5,19 @@ import 'dayjs/locale/ru';
 
 dayjs.extend(customParseFormat);
 dayjs.extend(localeData);
-
 dayjs.locale('ru');
+
+interface Expense {
+  id: string;
+  description: string;
+  amount: number;
+  expand: {
+    category_id: {
+      name: string;
+    };
+  };
+  date: string;
+}
 
 interface ExpenseItem {
   id: string;
@@ -21,14 +32,29 @@ interface GroupedData {
   data: ExpenseItem[];
 }
 
+/**
+ * Groups expenses by date and calculates total amount for each date.
+ * @param expenses - The list of paginated expenses.
+ * @param allExpenses - The complete list of expenses for calculating total amounts per date.
+ * @returns Grouped data by date with total amounts.
+ */
 export function groupExpensesByDate(
-  expenses: any[],
-  totalAmountsByDate: Record<string, number>,
+  expenses: Expense[],
+  allExpenses: Expense[],
 ): GroupedData[] {
+  const totalAmountsByDate = allExpenses.reduce<Record<string, number>>(
+    (acc, expense) => {
+      const date = dayjs(expense.date).format('DD MMMM YYYY');
+      acc[date] = (acc[date] || 0) + expense.amount;
+      return acc;
+    },
+    {},
+  );
+
   const groupedData: Record<string, { data: ExpenseItem[] }> = {};
 
   expenses.forEach((expense) => {
-    const date = dayjs(expense.date.split('T')[0]).format('DD MMMM YYYY');
+    const date = dayjs(expense.date).format('DD MMMM YYYY');
     const expenseObject: ExpenseItem = {
       id: expense.id,
       description: expense.description,
@@ -39,6 +65,7 @@ export function groupExpensesByDate(
     if (!groupedData[date]) {
       groupedData[date] = { data: [] };
     }
+
     groupedData[date].data.push(expenseObject);
   });
 
