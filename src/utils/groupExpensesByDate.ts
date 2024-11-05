@@ -8,13 +8,28 @@ dayjs.extend(localeData);
 
 dayjs.locale('ru');
 
-export function groupExpensesByDate(expenses) {
-  const groupedData = {};
+interface ExpenseItem {
+  id: string;
+  description: string;
+  amount: number;
+  category: string;
+}
+
+interface GroupedData {
+  date: string;
+  totalAmount: number;
+  data: ExpenseItem[];
+}
+
+export function groupExpensesByDate(
+  expenses: any[],
+  totalAmountsByDate: Record<string, number>,
+): GroupedData[] {
+  const groupedData: Record<string, { data: ExpenseItem[] }> = {};
 
   expenses.forEach((expense) => {
     const date = dayjs(expense.date.split('T')[0]).format('DD MMMM YYYY');
-
-    const expenseObject = {
+    const expenseObject: ExpenseItem = {
       id: expense.id,
       description: expense.description,
       amount: expense.amount,
@@ -22,16 +37,14 @@ export function groupExpensesByDate(expenses) {
     };
 
     if (!groupedData[date]) {
-      groupedData[date] = { data: [], totalAmount: 0 };
+      groupedData[date] = { data: [] };
     }
     groupedData[date].data.push(expenseObject);
-    groupedData[date].totalAmount += expense.amount;
   });
 
-  // @ts-ignore
-  return Object.entries(groupedData).map(([date, { data, totalAmount }]) => ({
+  return Object.entries(groupedData).map(([date, { data }]) => ({
     date,
-    totalAmount: parseFloat(totalAmount.toFixed(2)),
+    totalAmount: parseFloat((totalAmountsByDate[date] || 0).toFixed(2)),
     data,
   }));
 }

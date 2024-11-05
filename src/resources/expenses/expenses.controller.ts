@@ -24,7 +24,7 @@ export class ExpensesController {
   }
 
   @ApiResponse({
-    description: 'Добавление траты',
+    description: 'Добавление трат',
     type: CreatedExpensesDto,
   })
   @Post()
