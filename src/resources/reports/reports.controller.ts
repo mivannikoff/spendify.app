@@ -3,6 +3,7 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ReportsService } from './reports.service';
 
+// Todo: Переименовать в report
 @ApiTags('Reports')
 @Controller('reports')
 export class ReportsController {

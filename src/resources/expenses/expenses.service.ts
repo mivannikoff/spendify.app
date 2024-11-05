@@ -64,8 +64,11 @@ export class ExpensesService {
   }
 
   async categories(): Promise<ExpenseCategoryDto> {
-    const startOfMonth = dayjs().startOf('month').toISOString();
-    const endOfMonth = dayjs().endOf('month').toISOString();
+    const startOfMonth = dayjs()
+      .startOf('month')
+      .subtract(1, 'day')
+      .toISOString();
+    const endOfMonth = dayjs().endOf('month').add(1, 'day').toISOString();
 
     const categories = await pb.collection('categories').getFullList();
 
