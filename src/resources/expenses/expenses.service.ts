@@ -24,7 +24,7 @@ export class ExpensesService {
       .collection('expenses')
       .getList(page, perPage, {
         expand: 'category_id',
-        sort: '-date',
+        sort: '-date,-created',
       })
       .catch((error) => {
         console.log(error);
@@ -44,9 +44,8 @@ export class ExpensesService {
     const resultByDate = await pb
       .collection('expenses')
       .getFullList({
-        expand: 'category_id',
         filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}"`,
-        sort: '-date',
+        sort: '-date,-created',
       })
       .catch((error) => {
         console.log(error);

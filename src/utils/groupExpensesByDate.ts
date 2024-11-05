@@ -45,7 +45,9 @@ export function groupExpensesByDate(
   const totalAmountsByDate = allExpenses.reduce<Record<string, number>>(
     (acc, expense) => {
       const date = dayjs(expense.date).format('DD MMMM YYYY');
+
       acc[date] = (acc[date] || 0) + expense.amount;
+
       return acc;
     },
     {},
