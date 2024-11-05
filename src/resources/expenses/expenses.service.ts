@@ -10,6 +10,7 @@ import {
   PaginatedExpensesDto,
   CreateExpensesDto,
   CreatedExpensesDto,
+  ExpenseCategoryDto,
 } from './dto';
 
 const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
@@ -60,6 +61,41 @@ export class ExpensesService {
       totalPages: result.totalPages,
       items: groupExpensesByDate(result.items, resultByDate),
     };
+  }
+
+  async categories(): Promise<ExpenseCategoryDto> {
+    const startOfMonth = dayjs().startOf('month').toISOString();
+    const endOfMonth = dayjs().endOf('month').toISOString();
+
+    const categories = await pb.collection('categories').getFullList();
+
+    const categoryExpenses = categories.map((category) => ({
+      id: category.id,
+      category: category.name,
+      totalAmount: 0,
+    }));
+
+    const expenses = await pb.collection('expenses').getFullList({
+      filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
+      expand: 'category_id', // Для получения информации о категории
+    });
+
+    expenses.forEach((expense) => {
+      const categoryId = expense.expand.category_id.id;
+      const amount = expense.amount;
+
+      const category = categoryExpenses.find((cat) => cat.id === categoryId);
+
+      if (category) {
+        category.totalAmount += amount;
+      }
+    });
+
+    categoryExpenses.forEach((category) => {
+      category.totalAmount = parseFloat(category.totalAmount.toFixed(2));
+    });
+
+    return categoryExpenses;
   }
 
   async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {

@@ -16,6 +16,7 @@ import {
   CreateExpensesDto,
   CreatedExpensesDto,
   ExpenseDto,
+  ExpenseCategoryDto,
 } from './dto';
 
 @ApiTags('Expenses')
@@ -30,6 +31,16 @@ export class ExpensesController {
   @Get()
   findAll(@Query() params: GetAllExpensesDto): Promise<PaginatedExpensesDto> {
     return this.expensesService.findAll(params);
+  }
+
+  @ApiResponse({
+    description: 'Получение суммы расходов по категориям',
+    type: ExpenseCategoryDto,
+    isArray: true,
+  })
+  @Get('/categories')
+  categories(): Promise<ExpenseCategoryDto> {
+    return this.expensesService.categories();
   }
 
   @ApiResponse({
