@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PocketBase = require('pocketbase/cjs');
 import * as dayjs from 'dayjs';
@@ -20,24 +20,39 @@ export class ExpensesService {
     page = 1,
     perPage = 30,
   }: GetAllExpensesDto): Promise<PaginatedExpensesDto> {
-    const result = await pb.collection('expenses').getList(page, perPage, {
-      expand: 'category_id',
-      sort: '-date',
-    });
+    const result = await pb
+      .collection('expenses')
+      .getList(page, perPage, {
+        expand: 'category_id',
+        sort: '-date',
+      })
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
 
     const dates = result?.items?.map((item) => new Date(item.date));
+
     const startDateExtended = dayjs(new Date(Math.min(...dates)))
       .subtract(1, 'day')
-      .format('YYYY-MM-DD');
+      .toISOString();
     const endDateExtended = dayjs(new Date(Math.max(...dates)))
       .add(1, 'day')
-      .format('YYYY-MM-DD');
+      .toISOString();
 
-    const resultByDate = await pb.collection('expenses').getFullList({
-      expand: 'category_id',
-      filter: `date >= "${startDateExtended}T00:00:00Z" && date <= "${endDateExtended}T23:59:59Z"`,
-      sort: '-date',
-    });
+    const resultByDate = await pb
+      .collection('expenses')
+      .getFullList({
+        expand: 'category_id',
+        filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}"`,
+        sort: '-date',
+      })
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
 
     return {
       page: result.page,
@@ -49,13 +64,20 @@ export class ExpensesService {
   }
 
   async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {
-    const result = await pb.collection('expenses').create(
-      {
-        ...params,
-        user_id: 'halzy88edbp6dr2',
-      },
-      { expand: 'category_id' },
-    );
+    const result = await pb
+      .collection('expenses')
+      .create(
+        {
+          ...params,
+          user_id: 'halzy88edbp6dr2',
+        },
+        { expand: 'category_id' },
+      )
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
 
     return {
       description: result.description,
@@ -73,7 +95,14 @@ export class ExpensesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await pb.collection('expenses').delete(id);
+    const result = await pb
+      .collection('expenses')
+      .delete(id)
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
 
     return result;
   }

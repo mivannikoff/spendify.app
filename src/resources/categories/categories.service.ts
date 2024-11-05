@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const PocketBase = require('pocketbase/cjs');
 
@@ -9,9 +9,16 @@ const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
 @Injectable()
 export class CategoriesService {
   async findAll(): Promise<CategoryDto[]> {
-    const result = await pb.collection('categories').getFullList({
-      sort: 'name',
-    });
+    const result = await pb
+      .collection('categories')
+      .getFullList({
+        sort: 'name',
+      })
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
 
     return result.map((category: CategoryDto) => ({
       id: category.id,
