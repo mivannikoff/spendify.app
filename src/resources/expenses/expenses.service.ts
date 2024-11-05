@@ -99,16 +99,18 @@ export class ExpensesService {
       0,
     );
 
-    const categoryExpensesWithPercentage = categoryExpenses.map((category) => {
-      const percentage =
-        totalExpenses > 0 ? (category.totalAmount / totalExpenses) * 100 : 0;
+    const categoryExpensesWithPercentage = categoryExpenses
+      .map((category) => {
+        const percentage =
+          totalExpenses > 0 ? (category.totalAmount / totalExpenses) * 100 : 0;
 
-      return {
-        ...category,
-        totalAmount: parseFloat(category.totalAmount.toFixed(2)),
-        percentage: parseFloat(percentage.toFixed(2)),
-      };
-    });
+        return {
+          ...category,
+          totalAmount: parseFloat(category.totalAmount.toFixed(2)),
+          percentage: parseFloat(percentage.toFixed(2)),
+        };
+      })
+      .sort((a, b) => b.totalAmount - a.totalAmount);
 
     return categoryExpensesWithPercentage;
   }
