@@ -3,28 +3,28 @@ import { HttpException, Injectable } from '@nestjs/common';
 const PocketBase = require('pocketbase/cjs');
 import * as dayjs from 'dayjs';
 
-import { groupExpensesByDate } from '../../utils';
+import { groupIncomesByDate } from '../../utils';
 
 import {
-  CreatedExpensesDto,
-  CreateExpensesDto,
-  ExpenseCategoryDto,
-  GetAllExpensesDto,
-  PaginatedExpensesDto,
+  CreatedIncomeDto,
+  CreateIncomeDto,
+  IncomeCategoryDto,
+  GetAllIncomesDto,
+  PaginatedIncomesDto,
 } from './dto';
 
 const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
 
 @Injectable()
-export class ExpensesService {
+export class IncomesService {
   async findAll({
     page = 1,
     perPage = 30,
-  }: GetAllExpensesDto): Promise<PaginatedExpensesDto> {
+  }: GetAllIncomesDto): Promise<PaginatedIncomesDto> {
     const result = await pb
-      .collection('expenses')
+      .collection('incomes')
       .getList(page, perPage, {
-        expand: 'category_id',
+        expand: 'source_id',
         sort: '-date,-created',
       })
       .catch((error) => {
@@ -43,7 +43,7 @@ export class ExpensesService {
       .toISOString();
 
     const resultByDate = await pb
-      .collection('expenses')
+      .collection('incomes')
       .getFullList({
         filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}"`,
         sort: '-date,-created',
@@ -59,72 +59,71 @@ export class ExpensesService {
       perPage: result.perPage,
       totalItems: result.totalItems,
       totalPages: result.totalPages,
-      items: groupExpensesByDate(result.items, resultByDate),
+      items: groupIncomesByDate(result.items, resultByDate),
     };
   }
 
-  async categories(): Promise<ExpenseCategoryDto> {
+  async categories(): Promise<IncomeCategoryDto> {
     const startOfMonth = dayjs()
       .startOf('month')
       .subtract(1, 'day')
       .toISOString();
     const endOfMonth = dayjs().endOf('month').add(1, 'day').toISOString();
 
-    // Todo: Заюзать categories.service.ts
-    const categories = await pb.collection('categories').getFullList();
+    const incomeSources = await pb.collection('income_sources').getFullList();
 
-    const categoryExpenses = categories.map((category) => ({
-      id: category.id,
-      category: category.name,
+    const sourceIncomes = incomeSources.map((source) => ({
+      id: source.id,
+      category: source.name,
       totalAmount: 0,
     }));
 
-    const expenses = await pb.collection('expenses').getFullList({
+    const incomes = await pb.collection('incomes').getFullList({
       filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
-      expand: 'category_id',
+      expand: 'source_id',
     });
 
-    expenses.forEach((expense) => {
-      const categoryId = expense.expand.category_id.id;
-      const amount = expense.amount;
+    incomes.forEach((income) => {
+      const categoryId = income.expand.source_id.id;
+      const amount = income.amount;
 
-      const category = categoryExpenses.find((cat) => cat.id === categoryId);
+      const source = sourceIncomes.find((cat) => cat.id === categoryId);
 
-      if (category) {
-        category.totalAmount += amount;
+      if (source) {
+        source.totalAmount += amount;
       }
     });
 
-    const totalExpenses = categoryExpenses.reduce(
-      (total, category) => total + category.totalAmount,
+    const totalIncomes = sourceIncomes.reduce(
+      (total, source) => total + source.totalAmount,
       0,
     );
 
-    const categoryExpensesWithPercentage = categoryExpenses
-      .map((category) => {
+    const sourceIncomesWithPercentage = sourceIncomes
+      .map((source) => {
         const percentage =
-          totalExpenses > 0 ? (category.totalAmount / totalExpenses) * 100 : 0;
+          totalIncomes > 0 ? (source.totalAmount / totalIncomes) * 100 : 0;
 
         return {
-          ...category,
-          totalAmount: parseFloat(category.totalAmount.toFixed(2)),
+          ...source,
+          totalAmount: parseFloat(source.totalAmount.toFixed(2)),
           percentage: parseFloat(percentage.toFixed(2)),
         };
       })
       .sort((a, b) => b.totalAmount - a.totalAmount);
 
-    return categoryExpensesWithPercentage;
+    return sourceIncomesWithPercentage;
   }
 
-  async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {
+  async create(params: CreateIncomeDto): Promise<CreatedIncomeDto> {
     const result = await pb
-      .collection('expenses')
+      .collection('incomes')
       .create(
         {
           ...params,
           user_id: 'halzy88edbp6dr2',
         },
-        { expand: 'category_id' },
+        { expand: 'source_id' },
       )
       .catch((error) => {
         console.log(error);
@@ -136,11 +135,11 @@ export class ExpensesService {
       description: result.description,
       amount: result.amount,
       date: result.date,
-      category: {
-        id: result.expand.category_id.id,
-        name: result.expand.category_id.name,
-        created: result.expand.category_id.created,
-        updated: result.expand.category_id.updated,
+      source: {
+        id: result.expand.source_id.id,
+        name: result.expand.source_id.name,
+        created: result.expand.source_id.created,
+        updated: result.expand.source_id.updated,
       },
       created: result.created,
       updated: result.updated,
@@ -149,7 +148,7 @@ export class ExpensesService {
 
   async delete(id: string): Promise<boolean> {
     return await pb
-      .collection('expenses')
+      .collection('incomes')
       .delete(id)
       .catch((error) => {
         console.log(error);
