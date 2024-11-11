@@ -25,10 +25,16 @@ export class ReportsService {
 
     const remainingBudget = parseFloat((allBudget - totalAmount).toFixed(2));
 
+    // Todo: Вынести в отдельную сущность;
+    const resultGoals = await pb
+      .collection('goals')
+      .getFirstListItem('user_id = "halzy88edbp6dr2"');
+
     return {
       categories,
       totalAmount,
       remainingBudget,
+      goal: remainingBudget - resultGoals.target_amount,
     };
   }
 }
