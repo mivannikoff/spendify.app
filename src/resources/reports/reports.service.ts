@@ -28,13 +28,15 @@ export class ReportsService {
     // Todo: Вынести в отдельную сущность;
     const resultGoals = await pb
       .collection('goals')
-      .getFirstListItem('user_id = "halzy88edbp6dr2"');
+      .getFullList('user_id = "halzy88edbp6dr2"');
 
     return {
       categories,
       totalAmount,
       remainingBudget,
-      goal: remainingBudget - resultGoals.target_amount,
+      goal: remainingBudget - resultGoals?.[0]?.target_amount,
+      goal1: remainingBudget - resultGoals?.[1]?.target_amount,
+      goal2: remainingBudget - resultGoals?.[2]?.target_amount,
     };
   }
 }
