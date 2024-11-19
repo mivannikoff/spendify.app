@@ -1,8 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { ReportsService } from './reports.service';
 
+@ApiBearerAuth()
 // Todo: Переименовать в report
 @ApiTags('Reports')
 @Controller('reports')

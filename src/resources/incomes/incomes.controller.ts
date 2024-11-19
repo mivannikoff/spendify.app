@@ -7,7 +7,7 @@ import {
   Query,
   Param,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 import { IncomesService } from './incomes.service';
 import {
@@ -19,6 +19,7 @@ import {
   IncomeCategoryDto,
 } from './dto';
 
+@ApiBearerAuth()
 @ApiTags('Incomes')
 @Controller('incomes')
 export class IncomesController {

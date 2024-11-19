@@ -1,7 +1,7 @@
 import { HttpException, Injectable } from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const PocketBase = require('pocketbase/cjs');
 import * as dayjs from 'dayjs';
+
+import { PocketBaseService } from '@/resources/pocketbase/pocketbase.service';
 
 import { groupExpensesByDate } from '../../utils';
 
@@ -13,15 +13,15 @@ import {
   PaginatedExpensesDto,
 } from './dto';
 
-const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
-
 @Injectable()
 export class ExpensesService {
+  constructor(private readonly pocketBaseService: PocketBaseService) {}
+
   async findAll({
     page = 1,
     perPage = 30,
   }: GetAllExpensesDto): Promise<PaginatedExpensesDto> {
-    const result = await pb
+    const result = await this.pocketBaseService.pb
       .collection('expenses')
       .getList(page, perPage, {
         expand: 'category_id',
@@ -33,6 +33,8 @@ export class ExpensesService {
         throw new HttpException(error.response.message, error.response.code);
       });
 
+    console.log(result);
+
     const dates = result?.items?.map((item) => new Date(item.date));
 
     const startDateExtended = dayjs(new Date(Math.min(...dates)))
@@ -42,7 +44,7 @@ export class ExpensesService {
       .add(1, 'day')
       .toISOString();
 
-    const resultByDate = await pb
+    const resultByDate = await this.pocketBaseService.pb
       .collection('expenses')
       .getFullList({
         filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}"`,
@@ -71,7 +73,9 @@ export class ExpensesService {
     const endOfMonth = dayjs().endOf('month').add(1, 'day').toISOString();
 
     // Todo: Заюзать categories.service.ts
-    const categories = await pb.collection('categories').getFullList();
+    const categories = await this.pocketBaseService.pb
+      .collection('categories')
+      .getFullList();
 
     const categoryExpenses = categories.map((category) => ({
       id: category.id,
@@ -79,10 +83,12 @@ export class ExpensesService {
       totalAmount: 0,
     }));
 
-    const expenses = await pb.collection('expenses').getFullList({
-      filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
-      expand: 'category_id',
-    });
+    const expenses = await this.pocketBaseService.pb
+      .collection('expenses')
+      .getFullList({
+        filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
+        expand: 'category_id',
+      });
 
     expenses.forEach((expense) => {
       const categoryId = expense.expand.category_id.id;
@@ -117,12 +123,14 @@ export class ExpensesService {
   }
 
   async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {
-    const result = await pb
+    const userId = await this.pocketBaseService.pb.authStore?.model?.id;
+
+    const result = await this.pocketBaseService.pb
       .collection('expenses')
       .create(
         {
           ...params,
-          user_id: 'halzy88edbp6dr2',
+          user_id: userId,
         },
         { expand: 'category_id' },
       )
@@ -148,7 +156,7 @@ export class ExpensesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    return await pb
+    return await this.pocketBaseService.pb
       .collection('expenses')
       .delete(id)
       .catch((error) => {

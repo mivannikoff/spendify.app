@@ -7,7 +7,7 @@ import {
   Query,
   Param,
 } from '@nestjs/common';
-import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 import { ExpensesService } from './expenses.service';
 import {
@@ -19,6 +19,7 @@ import {
   ExpenseCategoryDto,
 } from './dto';
 
+@ApiBearerAuth()
 @ApiTags('Expenses')
 @Controller('expenses')
 export class ExpensesController {

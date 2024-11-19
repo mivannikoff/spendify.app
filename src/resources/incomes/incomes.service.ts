@@ -1,6 +1,4 @@
 import { HttpException, Injectable } from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const PocketBase = require('pocketbase/cjs');
 import * as dayjs from 'dayjs';
 
 import { groupIncomesByDate } from '../../utils';
@@ -12,16 +10,17 @@ import {
   GetAllIncomesDto,
   PaginatedIncomesDto,
 } from './dto';
-
-const pb = new PocketBase('https://api.spendify.ivannikoff.ru/');
+import { PocketBaseService } from '@/resources/pocketbase/pocketbase.service';
 
 @Injectable()
 export class IncomesService {
+  constructor(private readonly pocketBaseService: PocketBaseService) {}
+
   async findAll({
     page = 1,
     perPage = 30,
   }: GetAllIncomesDto): Promise<PaginatedIncomesDto> {
-    const result = await pb
+    const result = await this.pocketBaseService.pb
       .collection('incomes')
       .getList(page, perPage, {
         expand: 'source_id',
@@ -42,7 +41,7 @@ export class IncomesService {
       .add(1, 'day')
       .toISOString();
 
-    const resultByDate = await pb
+    const resultByDate = await this.pocketBaseService.pb
       .collection('incomes')
       .getFullList({
         filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}"`,
@@ -70,7 +69,9 @@ export class IncomesService {
       .toISOString();
     const endOfMonth = dayjs().endOf('month').add(1, 'day').toISOString();
 
-    const incomeSources = await pb.collection('income_sources').getFullList();
+    const incomeSources = await this.pocketBaseService.pb
+      .collection('income_sources')
+      .getFullList();
 
     const sourceIncomes = incomeSources.map((source) => ({
       id: source.id,
@@ -78,10 +79,12 @@ export class IncomesService {
       totalAmount: 0,
     }));
 
-    const incomes = await pb.collection('incomes').getFullList({
-      filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
-      expand: 'source_id',
-    });
+    const incomes = await this.pocketBaseService.pb
+      .collection('incomes')
+      .getFullList({
+        filter: `date >= "${startOfMonth}" && date <= "${endOfMonth}"`,
+        expand: 'source_id',
+      });
 
     incomes.forEach((income) => {
       const categoryId = income.expand.source_id.id;
@@ -116,12 +119,14 @@ export class IncomesService {
   }
 
   async create(params: CreateIncomeDto): Promise<CreatedIncomeDto> {
-    const result = await pb
+    const userId = await this.pocketBaseService.pb.authStore?.model?.id;
+
+    const result = await this.pocketBaseService.pb
       .collection('incomes')
       .create(
         {
           ...params,
-          user_id: 'halzy88edbp6dr2',
+          user_id: userId,
         },
         { expand: 'source_id' },
       )
@@ -147,7 +152,7 @@ export class IncomesService {
   }
 
   async delete(id: string): Promise<boolean> {
-    return await pb
+    return await this.pocketBaseService.pb
       .collection('incomes')
       .delete(id)
       .catch((error) => {
