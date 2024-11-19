@@ -22,8 +22,6 @@ export class CategoriesService {
     return result.map((category: CategoryDto) => ({
       id: category.id,
       name: category.name,
-      created: category.created,
-      updated: category.updated,
     }));
   }
 }

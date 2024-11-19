@@ -1,6 +1,4 @@
 import { HttpException, Injectable } from '@nestjs/common';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const PocketBase = require('pocketbase/cjs');
 
 import { PocketBaseService } from '@/resources/pocketbase/pocketbase.service';
 
@@ -91,14 +89,7 @@ export class AuthService {
         throw new HttpException(error.response.message, error.response.code);
       });
 
-    await this.pocketBaseService.pb
-      .collection('users')
-      .requestVerification(createdUserResult.email)
-      .catch((error) => {
-        console.log(error);
-
-        throw new HttpException(error.response.message, error.response.code);
-      });
+    await this.requestVerification({ email: createdUserResult.email });
 
     return {
       id: createdUserResult.id,

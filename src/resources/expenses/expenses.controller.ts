@@ -17,6 +17,8 @@ import {
   CreatedExpensesDto,
   ExpenseDto,
   ExpenseCategoryDto,
+  GetAllExpensesByCategoryDto,
+  PaginatedExpensesByCategoryDto,
 } from './dto';
 
 @ApiBearerAuth()
@@ -40,8 +42,21 @@ export class ExpensesController {
     isArray: true,
   })
   @Get('/categories')
-  categories(): Promise<ExpenseCategoryDto> {
-    return this.expensesService.categories();
+  findByCategories(): Promise<ExpenseCategoryDto> {
+    return this.expensesService.findByCategories();
+  }
+
+  @ApiResponse({
+    description: 'Получение списка расходов по категории',
+    type: ExpenseCategoryDto,
+    isArray: true,
+  })
+  @Get('/category/:categoryId')
+  findByCategory(
+    @Param('categoryId') categoryId: string,
+    @Query() params: GetAllExpensesByCategoryDto,
+  ): Promise<PaginatedExpensesByCategoryDto> {
+    return this.expensesService.findByCategory(categoryId, params);
   }
 
   @ApiResponse({

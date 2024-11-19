@@ -11,6 +11,8 @@ import {
   ExpenseCategoryDto,
   GetAllExpensesDto,
   PaginatedExpensesDto,
+  GetAllExpensesByCategoryDto,
+  PaginatedExpensesByCategoryDto,
 } from './dto';
 
 @Injectable()
@@ -32,8 +34,6 @@ export class ExpensesService {
 
         throw new HttpException(error.response.message, error.response.code);
       });
-
-    console.log(result);
 
     const dates = result?.items?.map((item) => new Date(item.date));
 
@@ -65,7 +65,7 @@ export class ExpensesService {
     };
   }
 
-  async categories(): Promise<ExpenseCategoryDto> {
+  async findByCategories(): Promise<ExpenseCategoryDto> {
     const startOfMonth = dayjs()
       .startOf('month')
       .subtract(1, 'day')
@@ -120,6 +120,55 @@ export class ExpensesService {
       .sort((a, b) => b.totalAmount - a.totalAmount);
 
     return categoryExpensesWithPercentage;
+  }
+
+  async findByCategory(
+    categoryId: string,
+    { page, perPage }: GetAllExpensesByCategoryDto,
+  ): Promise<PaginatedExpensesByCategoryDto> {
+    const result = await this.pocketBaseService.pb
+      .collection('expenses')
+      .getList(page, perPage, {
+        filter: `category_id.id="${categoryId}"`,
+        expand: 'category_id',
+        sort: '-date,-created',
+      })
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
+
+    console.log(result, categoryId);
+
+    const dates = result?.items?.map((item) => new Date(item.date));
+
+    const startDateExtended = dayjs(new Date(Math.min(...dates)))
+      .subtract(1, 'day')
+      .toISOString();
+    const endDateExtended = dayjs(new Date(Math.max(...dates)))
+      .add(1, 'day')
+      .toISOString();
+
+    const resultByDate = await this.pocketBaseService.pb
+      .collection('expenses')
+      .getFullList({
+        filter: `date >= "${startDateExtended}" && date <= "${endDateExtended}" && category_id.id="${categoryId}"`,
+        sort: '-date,-created',
+      })
+      .catch((error) => {
+        console.log(error);
+
+        throw new HttpException(error.response.message, error.response.code);
+      });
+
+    return {
+      page: result.page,
+      perPage: result.perPage,
+      totalItems: result.totalItems,
+      totalPages: result.totalPages,
+      items: groupExpensesByDate(result.items, resultByDate),
+    };
   }
 
   async create(params: CreateExpensesDto): Promise<CreatedExpensesDto> {

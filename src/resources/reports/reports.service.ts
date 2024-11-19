@@ -13,7 +13,7 @@ export class ReportsService {
   ) {}
 
   async chart(): Promise<any> {
-    const categories = await this.expensesService.categories();
+    const categories = await this.expensesService.findByCategories();
 
     const totalAmount = calculateTotalAmount(categories);
 

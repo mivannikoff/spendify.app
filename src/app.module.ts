@@ -24,11 +24,7 @@ export class AppModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(AuthMiddleware)
-      .forRoutes(
-        { path: '/categories', method: RequestMethod.ALL },
-        { path: '/expenses', method: RequestMethod.ALL },
-        { path: '/incomes', method: RequestMethod.ALL },
-        { path: '/reports', method: RequestMethod.ALL },
-      );
+      .exclude({ path: '/auth(.*)', method: RequestMethod.ALL })
+      .forRoutes('*');
   }
 }
