@@ -15,7 +15,13 @@ export class ReportsService {
   async chart(): Promise<any> {
     const categories = await this.expensesService.findByCategories();
 
-    const totalAmount = calculateTotalAmount(categories);
+    const allExpenses = await this.expensesService.findAll({
+      page: 1,
+      perPage: 999999,
+    });
+
+    const totalAmountByMonth = calculateTotalAmount(categories);
+    const totalAmountByAllTime = calculateTotalAmount(allExpenses.items);
 
     const result = await this.pocketBaseService.pb
       .collection('incomes')
@@ -25,7 +31,9 @@ export class ReportsService {
       return total + income.amount;
     }, 0);
 
-    const remainingBudget = parseFloat((allBudget - totalAmount).toFixed(2));
+    const remainingBudget = parseFloat(
+      (allBudget - totalAmountByAllTime).toFixed(2),
+    );
 
     // Todo: Вынести в отдельную сущность;
     const resultGoals = await this.pocketBaseService.pb
@@ -34,7 +42,7 @@ export class ReportsService {
 
     return {
       categories,
-      totalAmount,
+      totalAmount: totalAmountByMonth,
       remainingBudget,
       goal: remainingBudget - resultGoals?.[0]?.target_amount,
       goal1: remainingBudget - resultGoals?.[1]?.target_amount,
