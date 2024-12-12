@@ -22,8 +22,8 @@ jobs:
 
     - name: 🔨 Build Project
       run: |
-        yarn --immutable
         yarn add ncc
+        yarn --immutable
         yarn build
 
     - name: List output files
