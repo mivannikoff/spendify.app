@@ -23,6 +23,7 @@ jobs:
     - name: 🔨 Build Project
       run: |
         yarn --immutable
+        yarn add @vercel/ncc
         yarn build
 
     - name: List output files
