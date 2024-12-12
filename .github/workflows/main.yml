@@ -1,0 +1,58 @@
+on:
+  push:
+    tags:        
+      - '**'
+name: 🚀 Deploy api on push
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.CI_TOKEN }}
+        submodules: true
+
+    - name: Use Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'yarn'
+
+    - name: 🔨 Build Project
+      run: |
+        yarn --immutable
+        yarn add ncc
+        yarn build
+
+    - name: List output files
+      run: find dist/ -print
+
+    - name: Build main file
+      run: ncc build dist/main.js -o build
+      
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USER }}
+        password: ${{ secrets.FTP_PASSWORD }}
+        exclude: |
+          **/node_modules/**
+          **/src/**
+          **/.git/**
+          **/.github/**
+    - name: SSH Remote Commands
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.SSH_SERVER }}
+        username: ${{ secrets.SSH_USER }}
+        password: ${{ secrets.SSH_PASSWORD }}
+        script: |
+          cd htdocs/api.client.spendify.ru/
+          source ~/.nvm/nvm.sh
+          nvm use 20
+          yarn
+          pm2 stop api.client.spendify.ru
+          pm2 start build/index.js --name "api.client.spendify.ru" -- --port 3066
