@@ -23,14 +23,15 @@ jobs:
     - name: 🔨 Build Project
       run: |
         yarn --immutable
-        yarn add ncc
         yarn build
 
     - name: List output files
       run: find dist/ -print
 
     - name: Build main file
-      run: yarn ncc build dist/main.js -o build
+      run: |
+        yarn add ncc
+        ncc build dist/main.js -o build
       
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
