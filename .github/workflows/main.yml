@@ -31,7 +31,7 @@ jobs:
 
     - name: Build main file
       run: |
-        ncc build dist/main.js -o build
+        yarn ncc build dist/main.js -o build
       
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
