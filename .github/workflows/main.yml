@@ -27,7 +27,7 @@ jobs:
       run: |
         yarn --immutable
         yarn add @vercel/ncc
-        yarn build
+        yarn build/
 
     - name: List output files
       run: find dist/ -print
