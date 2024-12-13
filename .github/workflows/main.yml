@@ -27,7 +27,7 @@ jobs:
       run: |
         yarn --immutable
         yarn add @vercel/ncc
-        yarn build/
+        yarn build
 
     - name: List output files
       run: find dist/ -print
@@ -42,7 +42,7 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USER }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: build
+        local-dir: build/
 
     - name: SSH Remote Commands
       uses: appleboy/ssh-action@v1.0.3
