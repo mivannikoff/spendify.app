@@ -42,7 +42,7 @@ jobs:
         local-dir: build/
 
     - name: SSH Remote Commands
-      uses: garygrossgarten/github-action-ssh@v0.8.0
+      uses: garygrossgarten/github-action-ssh@release
       with:
         host: ${{ secrets.SSH_SERVER }}
         username: ${{ secrets.SSH_USER }}
