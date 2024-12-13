@@ -42,17 +42,17 @@ jobs:
         local-dir: build/
 
     - name: SSH Remote Commands
-      uses: appleboy/ssh-action@v1.0.3
+      uses: garygrossgarten/github-action-ssh@v0.8.0
       with:
         host: ${{ secrets.SSH_SERVER }}
         username: ${{ secrets.SSH_USER }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
-          export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          nvm install 20
-          npm install pm2@latest -g
+          # curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+          # export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+          # [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          # nvm install 20
+          # npm install pm2@latest -g
           cd htdocs/api.client.spendify.ru/
           pm2 stop api.client.spendify.ru
           pm2 start build/index.js --name "api.client.spendify.ru" -- --port 3066
