@@ -1,3 +1,6 @@
+
+
+
 on:
   push:
     tags:        
@@ -29,7 +32,7 @@ jobs:
     - name: List output files
       run: find dist/ -print
 
-    - name: Build main file
+    - name: 📂 Prepare build for upload
       run: |
         yarn ncc build dist/main.js -o build
       
@@ -39,11 +42,8 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USER }}
         password: ${{ secrets.FTP_PASSWORD }}
-        exclude: |
-          **/node_modules/**
-          **/src/**
-          **/.git/**
-          **/.github/**
+        local-dir: build
+
     - name: SSH Remote Commands
       uses: appleboy/ssh-action@v1.0.3
       with:
@@ -54,6 +54,5 @@ jobs:
           cd htdocs/api.client.spendify.ru/
           source ~/.nvm/nvm.sh
           nvm use 20
-          yarn
           pm2 stop api.client.spendify.ru
           pm2 start build/index.js --name "api.client.spendify.ru" -- --port 3066
