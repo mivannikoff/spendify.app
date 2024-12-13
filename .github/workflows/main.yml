@@ -31,7 +31,7 @@ jobs:
 
     - name: 📂 Prepare build for upload
       run: |
-        yarn ncc build dist/main.js -o build
+        yarn ncc build dist/main.js -o build/build
       
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
@@ -52,8 +52,7 @@ jobs:
           export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           nvm install 20
-          nvm use 20
           npm install pm2@latest -g
           cd htdocs/api.client.spendify.ru/
           pm2 stop api.client.spendify.ru
-          pm2 start index.js --name "api.client.spendify.ru" -- --port 3066
+          pm2 start build/index.js --name "api.client.spendify.ru" -- --port 3066
