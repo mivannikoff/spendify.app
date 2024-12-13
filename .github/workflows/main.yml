@@ -1,6 +1,3 @@
-
-
-
 on:
   push:
     tags:        
@@ -55,4 +52,4 @@ jobs:
           source ~/.nvm/nvm.sh
           nvm use 20
           pm2 stop api.client.spendify.ru
-          pm2 start build/index.js --name "api.client.spendify.ru" -- --port 3066
+          pm2 start index.js --name "api.client.spendify.ru" -- --port 3066
