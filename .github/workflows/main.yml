@@ -49,8 +49,7 @@ jobs:
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
           cd htdocs/api.client.spendify.ru/
-          export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          source ~/.bashrc
           nvm use 20
           pm2 stop api.client.spendify.ru
           pm2 start index.js --name "api.client.spendify.ru" -- --port 3066
